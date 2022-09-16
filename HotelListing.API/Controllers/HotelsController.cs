@@ -9,6 +9,7 @@ using HotelListing.API.Data;
 using HotelListing.API.Contracts;
 using AutoMapper;
 using HotelListing.API.Repository;
+using HotelListing.API.Models.Hotel;
 
 namespace HotelListing.API.Controllers
 {
@@ -16,57 +17,62 @@ namespace HotelListing.API.Controllers
     [ApiController]
     public class HotelsController : ControllerBase
     {
-        //private readonly IMapper _mapper;
+        private readonly IMapper _mapper;
         private readonly IHotelsRepository _hotelsRepository;
 
-        // public HotelsController(IMapper mapper, IHotelsRepository hotelsRepository)
-        public HotelsController(IHotelsRepository hotelsRepository)
+        public HotelsController(IMapper mapper, IHotelsRepository hotelsRepository)
         {
-            // _mapper = mapper;
+            _mapper = mapper;
             _hotelsRepository = hotelsRepository;
         }
 
         // GET: api/Hotels
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<Hotel>>> GetHotels()
+        public async Task<ActionResult<IEnumerable<HotelDto>>> GetHotels()
         {
-          var hotels =  await _hotelsRepository.GetAllAsync();
-          if (hotels == null)
-          {
-              return NotFound();
-          }
-            return hotels;
+            var hotels = await _hotelsRepository.GetAllAsync();
+            if (hotels == null)
+            {
+                return NotFound();
+            }
+            return Ok(_mapper.Map<List<HotelDto>>(hotels));
         }
 
         // GET: api/Hotels/5
         [HttpGet("{id}")]
-        public async Task<ActionResult<Hotel>> GetHotel(int id)
+        public async Task<ActionResult<HotelDto>> GetHotel(int id)
         {
             var hotel = await _hotelsRepository.GetAsync(id);
             if (hotel == null)
-          {
-              return NotFound();
-          }
-            return hotel;
+            {
+                return NotFound();
+            }
+            return Ok(_mapper.Map<HotelDto>(hotel));
         }
 
         // PUT: api/Hotels/5
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPut("{id}")]
-        public async Task<IActionResult> PutHotel(int id, Hotel hotel)
+        public async Task<IActionResult> PutHotel(int id, HotelDto hotelDto)
         {
-            if (id != hotel.Id)
+            if (id != hotelDto.Id)
             {
                 return BadRequest();
             }
-            
+            var hotel = await _hotelsRepository.GetAsync(id);
+            if (hotel == null)
+            {
+                return NotFound();
+            }
+            _mapper.Map(hotelDto, hotel);
+
             try
             {
                 await _hotelsRepository.UpdateAsync(hotel);
             }
             catch (DbUpdateConcurrencyException)
             {
-                if (! await HotelExists(id))
+                if (!await HotelExists(id))
                 {
                     return NotFound();
                 }
@@ -82,9 +88,10 @@ namespace HotelListing.API.Controllers
         // POST: api/Hotels
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPost]
-        public async Task<ActionResult<Hotel>> PostHotel(Hotel hotel)
+        public async Task<ActionResult<Hotel>> PostHotel(CreateHotelDto hotelDto)
         {
-           await _hotelsRepository.AddAsync(hotel);
+            var hotel = _mapper.Map<Hotel>(hotelDto);
+            await _hotelsRepository.AddAsync(hotel);
 
             return CreatedAtAction("GetHotel", new { id = hotel.Id }, hotel);
         }

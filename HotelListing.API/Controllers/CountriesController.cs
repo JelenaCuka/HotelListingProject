@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using HotelListing.API.Data;
+using HotelListing.API.Models.Country;
 
 namespace HotelListing.API.Controllers
 {
@@ -24,11 +25,11 @@ namespace HotelListing.API.Controllers
         [HttpGet]
         public async Task<ActionResult<IEnumerable<Country>>> GetCountries()
         {
-          if (_context.Countries == null)
-          {
-              return NotFound();
-          }
-          var countries = await _context.Countries.ToListAsync();
+            if (_context.Countries == null)
+            {
+                return NotFound();
+            }
+            var countries = await _context.Countries.ToListAsync();
             return Ok(countries);
         }
 
@@ -36,10 +37,10 @@ namespace HotelListing.API.Controllers
         [HttpGet("{id}")]
         public async Task<ActionResult<Country>> GetCountry(int id)
         {
-          if (_context.Countries == null)
-          {
-              return NotFound();
-          }
+            if (_context.Countries == null)
+            {
+                return NotFound();
+            }
             var country = await _context.Countries.FindAsync(id);
 
             if (country == null)
@@ -84,12 +85,17 @@ namespace HotelListing.API.Controllers
         // POST: api/Countries
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPost]
-        public async Task<ActionResult<Country>> PostCountry(Country country)
+        public async Task<ActionResult<Country>> PostCountry(CreateCountryDto createCountry)
         {
-          if (_context.Countries == null)
-          {
-              return Problem("Entity set 'HotelListingDbContext.Countries'  is null.");
-          }
+            var country = new Country()
+            {
+                Name = createCountry.Name,
+                ShortName = createCountry.ShortName
+            };
+            if (_context.Countries == null)
+            {
+                return Problem("Entity set 'HotelListingDbContext.Countries'  is null.");
+            }
             _context.Countries.Add(country);
             await _context.SaveChangesAsync();
 

@@ -31,7 +31,7 @@ namespace HotelListing.API.Controllers
             _logger = logger;
         }
 
-        // GET: api/Countries
+        // GET: api/Countries/GetAll
         [HttpGet("GetAll")]
         public async Task<ActionResult<IEnumerable<GetCountryDto>>> GetCountries()
         {
